@@ -77,6 +77,8 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     @disable this();
     @disable this(this);
 
+    enum bool isUniformRandom = true;
+
     private enum Uint upperMask = ~((cast(Uint) 1u << (Uint.sizeof * 8 - (w - r))) - 1);
     private enum Uint lowerMask = (cast(Uint) 1u << r) - 1;
 
@@ -140,6 +142,8 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         index = n-1;
         this.popFront();
     }
+
+    enum bool empty = false;
 
     /++
     Get current random variate
@@ -206,3 +210,11 @@ alias Mt19937_64 = MersenneTwisterEngine!(ulong, 64, 312, 156, 31,
                                        17, 0x71d67fffeda60000,
                                        37, 0xfff7eee000000000,
                                        43);
+
+unittest
+{
+    import std.random : isUniformRNG;
+
+    static assert(isUniformRNG!Mt19937_32);
+    static assert(isUniformRNG!Mt19937_64);
+}
