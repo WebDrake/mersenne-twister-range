@@ -46,12 +46,14 @@ void main()
     sw.reset;
     foreach(_; 0..count)
     {
-        s += mir_32r();
+        s += mir_32r.front;
+        mir_32r.popFront();
     }
     sw.start;
     foreach(_; 0..count)
     {
-        s += mir_32r();
+        s += mir_32r.front;
+        mir_32r.popFront();
     }
     sw.stop;
     writefln("range Mir 32-bit Mt19937: %s Gb/s", double(count * 32u) / sw.peek.msecs / 1000 ^^ 2);
@@ -70,12 +72,14 @@ void main()
     sw.reset;
     foreach(_; 0..count)
     {
-        s += mir_64r();
+        s += mir_64r.front;
+        mir_64r.popFront();
     }
     sw.start;
     foreach(_; 0..count)
     {
-        s += mir_64r();
+        s += mir_64r.front;
+        mir_64r.popFront();
     }
     sw.stop;
     writefln("range Mir 64-bit Mt19937: %s Gb/s", double(count * 64u) / sw.peek.msecs / 1000 ^^ 2);

@@ -103,6 +103,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /// The default seed value.
     enum Uint defaultSeed = 5489;
 
+    private Uint _y = void;
     private Uint _z = void;
     /++
     Current reversed payload index with initial value equals to `n-1`
@@ -137,13 +138,21 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         foreach_reverse (size_t i, ref e; data[0 .. $-1])
             e = f * (data[i + 1] ^ (data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
         index = n-1;
-        opCall();
+        this.popFront();
+    }
+
+    /++
+    Get current random variate
+    +/
+    Uint front() @property @safe pure nothrow @nogc
+    {
+        return this._y;
     }
 
     /++
     Advances the generator.
     +/
-    Uint opCall() @safe pure nothrow @nogc
+    void popFront() @safe pure nothrow @nogc
     {
         sizediff_t index = cast(size_t)this.index;
         sizediff_t next = index - 1;
@@ -169,7 +178,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         z ^= (z >> l);
         _z = data[index] = e;
         this.index = cast(Uint)next;
-        return z;
+        this._y = z;
     }
 }
 
