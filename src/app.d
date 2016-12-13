@@ -33,19 +33,9 @@ void main()
     enum ulong count = 100_000_000;
     ulong s;
     StopWatch sw;
-    sw.start;
-    foreach(_; 0..count) //boost CPU
-    {
-        s += std.front;
-        std.popFront;
-        s += mir_32o();
-        s += mir_64o();
-        s += mir_32r();
-        s += mir_64r();
-    }
-    s = 0;
-    sw.stop;
     sw.reset;
+    foreach(_; 0..count)
+        s += mir_32o();
     sw.start;
     foreach(_; 0..count)
         s += mir_32o();
@@ -54,6 +44,10 @@ void main()
     writeln("check sum = ", s, "\n");
     s = 0;
     sw.reset;
+    foreach(_; 0..count)
+    {
+        s += mir_32r();
+    }
     sw.start;
     foreach(_; 0..count)
     {
@@ -64,6 +58,8 @@ void main()
     writeln("check sum = ", s, "\n");
     s = 0;
     sw.reset;
+    foreach(_; 0..count)
+        s += mir_64o();
     sw.start;
     foreach(_; 0..count)
         s += mir_64o();
@@ -72,6 +68,10 @@ void main()
     writeln("check sum = ", s, "\n");
     s = 0;
     sw.reset;
+    foreach(_; 0..count)
+    {
+        s += mir_64r();
+    }
     sw.start;
     foreach(_; 0..count)
     {
@@ -82,6 +82,11 @@ void main()
     writeln("check sum = ", s, "\n");
     s = 0;
     sw.reset;
+    foreach(_; 0..count)
+    {
+        s += std.front;
+        std.popFront();
+    }
     sw.start;
     foreach(_; 0..count)
     {
