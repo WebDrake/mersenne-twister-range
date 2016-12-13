@@ -100,5 +100,57 @@ void main()
     sw.stop;
     writefln("Phobos 32-bit Mt19937: %s Gb/s", double(count * 32u) / sw.peek.msecs / 1000 ^^ 2);
     writeln("check sum = ", s, "\n");
-    writefln("Phobos 64-bit Mt19937: wrong initialization and tempering");
+    writefln("Phobos 64-bit Mt19937: wrong initialization and tempering\n");
+
+    double x;
+    x = 0;
+    sw.reset;
+    foreach(_; 0..count)
+    {
+        import std.random : uniform;
+        x += uniform(0.0, 1.0, mir_32r);
+    }
+    sw.start;
+    foreach(_; 0..count)
+    {
+        import std.random : uniform;
+        x += uniform(0.0, 1.0, mir_32r);
+    }
+    sw.stop;
+    writefln("range Mir 32-bit Mt19937: %s U(0.0, 1.0) variates/s\n",
+             double(count) / sw.peek.msecs / 1000);
+
+    x = 0;
+    sw.reset;
+    foreach(_; 0..count)
+    {
+        import std.random : uniform;
+        x += uniform(0.0, 1.0, mir_64r);
+    }
+    sw.start;
+    foreach(_; 0..count)
+    {
+        import std.random : uniform;
+        x += uniform(0.0, 1.0, mir_64r);
+    }
+    sw.stop;
+    writefln("range Mir 64-bit Mt19937: %s U(0.0, 1.0) variates/s\n",
+             double(count) / sw.peek.msecs / 1000);
+
+    x = 0;
+    sw.reset;
+    foreach(_; 0..count)
+    {
+        import std.random : uniform;
+        x += uniform(0.0, 1.0, std);
+    }
+    sw.start;
+    foreach(_; 0..count)
+    {
+        import std.random : uniform;
+        x += uniform(0.0, 1.0, std);
+    }
+    sw.stop;
+    writefln("Phobos 32-bit Mt19937: %s U(0.0, 1.0) variates/s\n",
+             double(count) / sw.peek.msecs / 1000);
 }
