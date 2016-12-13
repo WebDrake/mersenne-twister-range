@@ -98,6 +98,9 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     enum Uint temperingC = c; /// ditto
     enum uint temperingL = l; /// ditto
 
+    /// Smallest generated value (0)
+    enum Uint min = 0;
+
     /// Largest generated value.
     enum Uint max = Uint.max >> (Uint.sizeof * 8u - w);
     static assert(a <= max && b <= max && c <= max);
