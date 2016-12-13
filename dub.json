@@ -1,0 +1,11 @@
+{
+	"name": "mir-mt-range",
+	"authors": [
+		"Joseph Rushton Wakeling"
+	],
+	"dependencies": {
+		"mir-random": "~>0.0.1"
+	},
+	"description": "Range-based version of Mir's Mersenne Twister implementation.",
+	"license": "BSL-1.0"
+}
