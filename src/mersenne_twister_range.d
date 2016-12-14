@@ -192,11 +192,10 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         }
         static if (is(Uint == uint))
             enum Uint f = 1812433253;
-        else
-        static if (is(Uint == ulong))
+        else static if (is(Uint == ulong))
             enum Uint f = 6364136223846793005;
         else
-        static assert(0, "ucent is not supported by MersenneTwisterEngine.");
+            static assert(0, Uint.stringof ~ " is not supported by MersenneTwisterEngine.");
         foreach_reverse (size_t i, ref e; mtState.data[0 .. $-1])
             e = f * (mtState.data[i + 1] ^ (mtState.data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
         mtState.index = n-1;
@@ -280,11 +279,11 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         // for significantly faster performance.
         sizediff_t index = cast(size_t)mtState.index;
         sizediff_t next = index - 1;
-        if(next < 0)
+        if (next < 0)
             next = n - 1;
         auto z = mtState.z;
         sizediff_t conj = index - m;
-        if(conj < 0)
+        if (conj < 0)
             conj = index - m + n;
         static if (d == Uint.max)
             z ^= (z >> u);
