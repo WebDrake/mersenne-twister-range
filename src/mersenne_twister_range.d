@@ -109,7 +109,6 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     enum Uint defaultSeed = 5489;
 
     private Uint _y = void;
-    private Uint _z = void;
     /++
     Current reversed payload index with initial value equals to `n-1`
     +/
@@ -165,7 +164,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         sizediff_t next = index - 1;
         if(next < 0)
             next = n - 1;
-        auto z = _z;
+        auto z = data[index];
         sizediff_t conj = index - m;
         if(conj < 0)
             conj = index - m + n;
@@ -183,7 +182,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
             x ^= a;
         auto e = data[conj] ^ x;
         z ^= (z >> l);
-        _z = data[index] = e;
+        data[index] = e;
         this.index = cast(Uint)next;
         this._y = z;
     }
