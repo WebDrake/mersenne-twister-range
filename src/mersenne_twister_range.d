@@ -110,16 +110,17 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /// The default seed value.
     enum Uint defaultSeed = 5489;
 
-    private Uint _y = void;
-    private Uint _z = 0;
-    /++
-    Current reversed payload index with initial value equals to `n-1`
-    +/
-    private Uint index = Uint.max;
-    /++
-    Reversed(!) payload.
-    +/
-    Uint[n] data = void;
+    /// State variables used by the generator
+    private struct State
+    {
+        private Uint y = void;
+        private Uint z = 0;
+        private Uint index = void;
+        private Uint[n] data = void;
+
+    }
+
+    private State state = defaultState();
 
     /**
        Constructs a MersenneTwisterEngine object.
@@ -140,19 +141,31 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         this.seed(range);
     }
 
+    private static State defaultState() @safe pure nothrow @nogc
+    {
+        State mtState;
+        seedImpl(defaultSeed, mtState);
+        return mtState;
+    }
+
     /**
        (Re)seeds the generator
     */
     void seed(Uint value) @safe pure nothrow @nogc
     {
+        this.seedImpl(value, this.state);
+    }
+
+    private static void seedImpl(Uint value, ref State mtState)
+    {
         static if (w == Uint.sizeof * 8)
         {
-            data[$-1] = value;
+            mtState.data[$-1] = value;
         }
         else
         {
             static assert(max + 1 > 0);
-            data[$-1] = value % (max + 1);
+            mtState.data[$-1] = value % (max + 1);
         }
         static if (is(Uint == uint))
             enum Uint f = 1812433253;
@@ -161,15 +174,15 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
             enum Uint f = 6364136223846793005;
         else
         static assert(0, "ucent is not supported by MersenneTwisterEngine.");
-        foreach_reverse (size_t i, ref e; data[0 .. $-1])
-            e = f * (data[i + 1] ^ (data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
-        index = n-1;
+        foreach_reverse (size_t i, ref e; mtState.data[0 .. $-1])
+            e = f * (mtState.data[i + 1] ^ (mtState.data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
+        mtState.index = n-1;
 
         // double popFront() to guarantee both
         // `_z` and `_y` are derived from the
         // newly set values in `data`
-        this.popFront();
-        this.popFront();
+        MersenneTwisterEngine.popFrontImpl(mtState);
+        MersenneTwisterEngine.popFrontImpl(mtState);
     }
 
     /**
@@ -179,14 +192,20 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     void seed(T)(T range)
         if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
     {
+        this.seedImpl(range, this.index, this._y, this._z, this.data);
+    }
+
+    private static void seedImpl(T)(T range, ref State mtState)
+        if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
+    {
         size_t j;
         for (j = 0; j < n && !range.empty; ++j, range.popFront())
         {
             sizediff_t idx = n - j - 1;
-            this.data[idx] = range.front;
+            mtState.data[idx] = range.front;
         }
 
-        this.index = n - 1;
+        mtState.index = n - 1;
 
         if (range.empty && j < n)
         {
@@ -196,8 +215,8 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         // double popFront() to guarantee both
         // `_z` and `_y` are derived from the
         // newly set values in `data`
-        this.popFront();
-        this.popFront();
+        MersenneTwisterEngine.popFrontImpl(mtState);
+        MersenneTwisterEngine.popFrontImpl(mtState);
     }
 
     enum bool empty = false;
@@ -207,14 +226,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     +/
     Uint front() @property @safe pure nothrow @nogc
     {
-        // Work around possibility of generator
-        // being initialized without being seeded
-        if (this.index >= n)
-        {
-            this.seed(this.defaultSeed);
-        }
-
-        return this._y;
+        return this.state.y;
     }
 
     /++
@@ -222,18 +234,16 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     +/
     void popFront() @safe pure nothrow @nogc
     {
-        // Work around possibility of generator
-        // being initialized without being seeded
-        if (this.index >= n)
-        {
-            this.seed(this.defaultSeed);
-        }
+        this.popFrontImpl(this.state);
+    }
 
-        sizediff_t index = cast(size_t)this.index;
+    private static void popFrontImpl(ref State mtState)
+    {
+        sizediff_t index = cast(size_t)mtState.index;
         sizediff_t next = index - 1;
         if(next < 0)
             next = n - 1;
-        auto z = _z;
+        auto z = mtState.z;
         sizediff_t conj = index - m;
         if(conj < 0)
             conj = index - m + n;
@@ -241,19 +251,19 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
             z ^= (z >> u);
         else
             z ^= (z >> u) & d;
-        auto q = data[index] & upperMask;
-        auto p = data[next] & lowerMask;
+        auto q = mtState.data[index] & upperMask;
+        auto p = mtState.data[next] & lowerMask;
         z ^= (z << s) & b;
         auto y = q | p;
         auto x = y >> 1;
         z ^= (z << t) & c;
         if (y & 1)
             x ^= a;
-        auto e = data[conj] ^ x;
+        auto e = mtState.data[conj] ^ x;
         z ^= (z >> l);
-        _z = data[index] = e;
-        this.index = cast(Uint)next;
-        this._y = z;
+        mtState.z = mtState.data[index] = e;
+        mtState.index = cast(Uint)next;
+        mtState.y = z;
     }
 }
 
