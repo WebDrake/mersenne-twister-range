@@ -68,6 +68,8 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
                              uint l)
     if (isUnsigned!Uint)
 {
+    import std.range.primitives;
+
     static assert(0 < w && w <= Uint.sizeof * 8);
     static assert(1 <= m && m <= n);
     static assert(0 <= r && 0 <= u && 0 <= s && 0 <= t && 0 <= l);
@@ -128,6 +130,17 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     }
 
     /**
+       Constructs a MersenneTwisterEngine object using a range
+       to seed the generator, which must have at least as many
+       elements as `data`.
+    */
+    this(T)(T range)
+        if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
+    {
+        this.seed(range);
+    }
+
+    /**
        (Re)seeds the generator
     */
     void seed(Uint value) @safe pure nothrow @nogc
@@ -151,6 +164,34 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         foreach_reverse (size_t i, ref e; data[0 .. $-1])
             e = f * (data[i + 1] ^ (data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
         index = n-1;
+
+        // double popFront() to guarantee both
+        // `_z` and `_y` are derived from the
+        // newly set values in `data`
+        this.popFront();
+        this.popFront();
+    }
+
+    /**
+       (Re)seeds the generator using values from a range,
+       which must have at least as many elements as `data`
+    */
+    void seed(T)(T range)
+        if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
+    {
+        size_t j;
+        for (j = 0; j < n && !range.empty; ++j, range.popFront())
+        {
+            sizediff_t idx = n - j - 1;
+            this.data[idx] = range.front;
+        }
+
+        this.index = n - 1;
+
+        if (range.empty && j < n)
+        {
+            assert(0, "Insufficient range elements to seed MersenneTwisterEngine.");
+        }
 
         // double popFront() to guarantee both
         // `_z` and `_y` are derived from the
@@ -233,4 +274,22 @@ unittest
 
     static assert(isUniformRNG!Mt19937_32);
     static assert(isUniformRNG!Mt19937_64);
+}
+
+unittest
+{
+    import std.random : Mt19937;
+    import std.range : iota, take;
+
+    auto gen = Mt19937_32(iota(1000u));
+
+    Mt19937 gen_std;
+    gen_std.seed(iota(1000u));
+
+    foreach (_; 0 .. 1000)
+    {
+        assert(gen.front == gen_std.front);
+        gen.popFront();
+        gen_std.popFront();
+    }
 }
