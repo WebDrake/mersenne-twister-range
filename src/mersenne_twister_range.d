@@ -60,29 +60,29 @@ import std.traits;
 /++
 The $(LUCKY Mersenne Twister) generator.
 +/
-struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
-                             Uint a,
-                             uint u, Uint d,
-                             uint s, Uint b,
-                             uint t, Uint c,
+struct MersenneTwisterEngine(UIntType, size_t w, size_t n, size_t m, size_t r,
+                             UIntType a,
+                             uint u, UIntType d,
+                             uint s, UIntType b,
+                             uint t, UIntType c,
                              uint l)
-    if (isUnsigned!Uint)
+    if (isUnsigned!UIntType)
 {
     import std.range.primitives;
 
-    static assert(0 < w && w <= Uint.sizeof * 8);
+    static assert(0 < w && w <= UIntType.sizeof * 8);
     static assert(1 <= m && m <= n);
     static assert(0 <= r && 0 <= u && 0 <= s && 0 <= t && 0 <= l);
     static assert(r <= w && u <= w && s <= w && t <= w && l <= w);
     static assert(0 <= a && 0 <= b && 0 <= c);
-    static assert(n < Uint.max);
+    static assert(n < UIntType.max);
 
     @disable this(this);
 
     enum bool isUniformRandom = true;
 
-    private enum Uint upperMask = ~((cast(Uint) 1u << (Uint.sizeof * 8 - (w - r))) - 1);
-    private enum Uint lowerMask = (cast(Uint) 1u << r) - 1;
+    private enum UIntType upperMask = ~((cast(UIntType) 1u << (UIntType.sizeof * 8 - (w - r))) - 1);
+    private enum UIntType lowerMask = (cast(UIntType) 1u << r) - 1;
 
     /**
     Parameters for the generator.
@@ -91,33 +91,33 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     enum size_t stateSize  = n; /// ditto
     enum size_t shiftSize  = m; /// ditto
     enum size_t maskBits   = r; /// ditto
-    enum Uint xorMask    = a; /// ditto
-    enum uint temperingU = u; /// ditto
-    enum Uint temperingD = d; /// ditto
-    enum uint temperingS = s; /// ditto
-    enum Uint temperingB = b; /// ditto
-    enum uint temperingT = t; /// ditto
-    enum Uint temperingC = c; /// ditto
-    enum uint temperingL = l; /// ditto
+    enum UIntType xorMask    = a; /// ditto
+    enum uint temperingU     = u; /// ditto
+    enum UIntType temperingD = d; /// ditto
+    enum uint temperingS     = s; /// ditto
+    enum UIntType temperingB = b; /// ditto
+    enum uint temperingT     = t; /// ditto
+    enum UIntType temperingC = c; /// ditto
+    enum uint temperingL     = l; /// ditto
 
     /// Smallest generated value (0)
-    enum Uint min = 0;
+    enum UIntType min = 0;
 
     /// Largest generated value.
-    enum Uint max = Uint.max >> (Uint.sizeof * 8u - w);
+    enum UIntType max = UIntType.max >> (UIntType.sizeof * 8u - w);
     static assert(a <= max && b <= max && c <= max);
 
     /// The default seed value.
-    enum Uint defaultSeed = 5489;
+    enum UIntType defaultSeed = 5489;
 
     /// Collection of all state variables
     /// used by the generator
     private struct State
     {
-        private Uint y = void;
-        private Uint z = 0;
-        private Uint index = void;
-        private Uint[n] data = void;
+        private UIntType y = void;
+        private UIntType z = 0;
+        private UIntType index = void;
+        private UIntType[n] data = void;
 
     }
 
@@ -130,7 +130,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /**
        Constructs a MersenneTwisterEngine object.
     */
-    this(Uint value) @safe pure nothrow @nogc
+    this(UIntType value) @safe pure nothrow @nogc
     {
         this.seed(value);
     }
@@ -141,7 +141,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
        elements as `data`.
     */
     this(T)(T range)
-        if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
+        if (isInputRange!T && is(Unqual!(ElementType!T) == UIntType))
     {
         this.seed(range);
     }
@@ -170,7 +170,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /**
        (Re)seeds the generator
     */
-    void seed(Uint value) @safe pure nothrow @nogc
+    void seed(UIntType value) @safe pure nothrow @nogc
     {
         this.seedImpl(value, this.state);
     }
@@ -179,9 +179,9 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
        Implementation of the seeding mechanism, which
        can be used with an arbitrary `State` instance
     */
-    private static void seedImpl(Uint value, ref State mtState)
+    private static void seedImpl(UIntType value, ref State mtState)
     {
-        static if (w == Uint.sizeof * 8)
+        static if (w == UIntType.sizeof * 8)
         {
             mtState.data[$-1] = value;
         }
@@ -190,14 +190,14 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
             static assert(max + 1 > 0);
             mtState.data[$-1] = value % (max + 1);
         }
-        static if (is(Uint == uint))
-            enum Uint f = 1812433253;
-        else static if (is(Uint == ulong))
-            enum Uint f = 6364136223846793005;
+        static if (is(UIntType == uint))
+            enum UIntType f = 1812433253;
+        else static if (is(UIntType == ulong))
+            enum UIntType f = 6364136223846793005;
         else
-            static assert(0, Uint.stringof ~ " is not supported by MersenneTwisterEngine.");
+            static assert(0, UIntType.stringof ~ " is not supported by MersenneTwisterEngine.");
         foreach_reverse (size_t i, ref e; mtState.data[0 .. $-1])
-            e = f * (mtState.data[i + 1] ^ (mtState.data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
+            e = f * (mtState.data[i + 1] ^ (mtState.data[i + 1] >> (w - 2))) + cast(UIntType)(n - (i + 1));
         mtState.index = n-1;
 
         // double popFront() to guarantee both
@@ -212,7 +212,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
        which must have at least as many elements as `data`
     */
     void seed(T)(T range)
-        if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
+        if (isInputRange!T && is(Unqual!(ElementType!T) == UIntType))
     {
         this.seedImpl(range, this.state);
     }
@@ -222,7 +222,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
        which can be used with an arbitrary `State` instance
     */
     private static void seedImpl(T)(T range, ref State mtState)
-        if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
+        if (isInputRange!T && is(Unqual!(ElementType!T) == UIntType))
     {
         size_t j;
         for (j = 0; j < n && !range.empty; ++j, range.popFront())
@@ -249,7 +249,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     enum bool empty = false;
 
     /// Range primitive: get the current random variate
-    Uint front() @property @safe pure nothrow @nogc
+    UIntType front() @property @safe pure nothrow @nogc
     {
         return this.state.y;
     }
@@ -285,7 +285,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         sizediff_t conj = index - m;
         if (conj < 0)
             conj = index - m + n;
-        static if (d == Uint.max)
+        static if (d == UIntType.max)
             z ^= (z >> u);
         else
             z ^= (z >> u) & d;
@@ -300,7 +300,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         auto e = mtState.data[conj] ^ x;
         z ^= (z >> l);
         mtState.z = mtState.data[index] = e;
-        mtState.index = cast(Uint)next;
+        mtState.index = cast(UIntType)next;
         mtState.y = z;
     }
 }
