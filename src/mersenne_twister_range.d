@@ -206,7 +206,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     void seed(T)(T range)
         if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
     {
-        this.seedImpl(range, this.index, this._y, this._z, this.data);
+        this.seedImpl(range, this.state);
     }
 
     /**
