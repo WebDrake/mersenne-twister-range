@@ -257,6 +257,18 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /// can be used with an arbitrary `State` instance
     private static void popFrontImpl(ref State mtState)
     {
+        // This function blends two nominally independent
+        // processes: (i) calculation of the next random
+        // variate `mtState.y` from the cached previous
+        // `data` entry `z`, and (ii) updating the value
+        // of `data[index]` and `mtState.z` and advancing
+        // the `index` value to the next in sequence.
+        //
+        // By interweaving the steps involved in these
+        // procedures, rather than performing each of
+        // them separately in sequence, the variables
+        // are kept 'hot' in CPU registers, allowing
+        // for significantly faster performance.
         sizediff_t index = cast(size_t)mtState.index;
         sizediff_t next = index - 1;
         if(next < 0)
