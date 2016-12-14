@@ -144,8 +144,9 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
             e = f * (data[i + 1] ^ (data[i + 1] >> (w - 2))) + cast(Uint)(n - (i + 1));
         index = n-1;
 
-        // double popFront() to guarantee _y and _z
-        // are set correctly
+        // double popFront() to guarantee both
+        // `_z` and `_y` are derived from the
+        // newly set values in `data`
         this.popFront();
         this.popFront();
     }
