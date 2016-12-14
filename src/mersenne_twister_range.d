@@ -303,6 +303,13 @@ struct MersenneTwisterEngine(UIntType, size_t w, size_t n, size_t m, size_t r,
         mtState.index = cast(UIntType)next;
         mtState.y = z;
     }
+
+    /// Range primitive: return an identical copy
+    /// of the generator
+    typeof(this) save() @property @safe pure nothrow @nogc
+    {
+        return typeof(this)(this);
+    }
 }
 
 /++
@@ -353,5 +360,18 @@ unittest
         assert(gen.front == gen_std.front);
         gen.popFront();
         gen_std.popFront();
+    }
+}
+
+unittest
+{
+    auto genA = Mt19937_32(101);
+    auto genB = genA.save;
+
+    foreach (_; 0 .. 1000)
+    {
+        assert(genA.front == genB.front);
+        genA.popFront();
+        genB.popFront();
     }
 }
