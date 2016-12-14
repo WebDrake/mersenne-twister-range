@@ -147,6 +147,15 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     }
 
     /**
+       Constructs a MersenneTwisterEngine object by
+       duplicating the state of an existing instance
+    */
+    this(ref typeof(this) that)
+    {
+        this.state = that.state;
+    }
+
+    /**
        Generates the default initial state for a Mersenne
        Twister; equivalent to the internal state obtained
        by calling `seed(defaultSeed)`
