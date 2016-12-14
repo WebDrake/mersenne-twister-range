@@ -110,7 +110,8 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /// The default seed value.
     enum Uint defaultSeed = 5489;
 
-    /// State variables used by the generator
+    /// Collection of all state variables
+    /// used by the generator
     private struct State
     {
         private Uint y = void;
@@ -120,6 +121,10 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
 
     }
 
+    /// State variables used by the generator;
+    /// initialized to values equivalent to
+    /// explicitly seeding the generator with
+    /// `defaultSeed`
     private State state = defaultState();
 
     /**
@@ -141,6 +146,11 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         this.seed(range);
     }
 
+    /**
+       Generates the default initial state for a Mersenne
+       Twister; equivalent to the internal state obtained
+       by calling `seed(defaultSeed)`
+    */
     private static State defaultState() @safe pure nothrow @nogc
     {
         State mtState;
@@ -156,6 +166,10 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         this.seedImpl(value, this.state);
     }
 
+    /**
+       Implementation of the seeding mechanism, which
+       can be used with an arbitrary `State` instance
+    */
     private static void seedImpl(Uint value, ref State mtState)
     {
         static if (w == Uint.sizeof * 8)
@@ -195,6 +209,10 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         this.seedImpl(range, this.index, this._y, this._z, this.data);
     }
 
+    /**
+       Implementation of the range-based seeding mechanism,
+       which can be used with an arbitrary `State` instance
+    */
     private static void seedImpl(T)(T range, ref State mtState)
         if (isInputRange!T && is(Unqual!(ElementType!T) == Uint))
     {
@@ -219,24 +237,24 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
         MersenneTwisterEngine.popFrontImpl(mtState);
     }
 
+    /// Range primitive: a Mersenne Twister is never empty
     enum bool empty = false;
 
-    /++
-    Get current random variate
-    +/
+    /// Range primitive: get the current random variate
     Uint front() @property @safe pure nothrow @nogc
     {
         return this.state.y;
     }
 
-    /++
-    Advances the generator.
-    +/
+    /// Range primitive: advance the generator state
+    /// to get the next random variate
     void popFront() @safe pure nothrow @nogc
     {
         this.popFrontImpl(this.state);
     }
 
+    /// Internal implementation of `popFront()`, which
+    /// can be used with an arbitrary `State` instance
     private static void popFrontImpl(ref State mtState)
     {
         sizediff_t index = cast(size_t)mtState.index;
