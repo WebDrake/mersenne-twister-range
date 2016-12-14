@@ -75,8 +75,8 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     static assert(0 <= r && 0 <= u && 0 <= s && 0 <= t && 0 <= l);
     static assert(r <= w && u <= w && s <= w && t <= w && l <= w);
     static assert(0 <= a && 0 <= b && 0 <= c);
+    static assert(n < Uint.max);
 
-    @disable this();
     @disable this(this);
 
     enum bool isUniformRandom = true;
@@ -115,7 +115,7 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     /++
     Current reversed payload index with initial value equals to `n-1`
     +/
-    private Uint index = void;
+    private Uint index = Uint.max;
     /++
     Reversed(!) payload.
     +/
@@ -207,6 +207,13 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     +/
     Uint front() @property @safe pure nothrow @nogc
     {
+        // Work around possibility of generator
+        // being initialized without being seeded
+        if (this.index >= n)
+        {
+            this.seed(this.defaultSeed);
+        }
+
         return this._y;
     }
 
@@ -215,6 +222,13 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     +/
     void popFront() @safe pure nothrow @nogc
     {
+        // Work around possibility of generator
+        // being initialized without being seeded
+        if (this.index >= n)
+        {
+            this.seed(this.defaultSeed);
+        }
+
         sizediff_t index = cast(size_t)this.index;
         sizediff_t next = index - 1;
         if(next < 0)
