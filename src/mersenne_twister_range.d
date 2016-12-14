@@ -124,6 +124,14 @@ struct MersenneTwisterEngine(Uint, size_t w, size_t n, size_t m, size_t r,
     */
     this(Uint value) @safe pure nothrow @nogc
     {
+        this.seed(value);
+    }
+
+    /**
+       (Re)seeds the generator
+    */
+    void seed(Uint value) @safe pure nothrow @nogc
+    {
         static if (w == Uint.sizeof * 8)
         {
             data[$-1] = value;
