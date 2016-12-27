@@ -77,8 +77,6 @@ struct MersenneTwisterEngine(UIntType, size_t w, size_t n, size_t m, size_t r,
     static assert(0 <= a && 0 <= b && 0 <= c);
     static assert(n < UIntType.max);
 
-    @disable this(this);
-
     enum bool isUniformRandom = true;
 
     private enum UIntType upperMask = ~((cast(UIntType) 1u << (UIntType.sizeof * 8 - (w - r))) - 1);
