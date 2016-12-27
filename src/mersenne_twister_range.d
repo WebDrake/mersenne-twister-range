@@ -386,3 +386,55 @@ unittest
         genB.popFront();
     }
 }
+
+unittest
+{
+    import std.random : Mt19937;
+    import std.range : iota, popFrontN, take;
+    import std.stdio : writeln;
+
+    {
+        Mt19937 gen_std;
+        gen_std.take(10).writeln;
+    }
+
+    {
+        Mt19937_32 gen;
+        (&gen).take(10).writeln;
+    }
+
+    {
+        Mt19937_32 gen = Mt19937_32(Mt19937_32.defaultSeed);
+        (&gen).take(10).writeln;
+    }
+
+    {
+        Mt19937 gen_std;
+        popFrontN(gen_std, 9999);
+        writeln(gen_std.front);
+    }
+
+    {
+        Mt19937_32 gen;
+        popFrontN(gen, 9999);
+        writeln(gen.front);
+    }
+
+    {
+        Mt19937 gen_std;
+        gen_std.seed(iota(1u, 625u));
+        gen_std.take(10).writeln;
+    }
+
+    {
+        Mt19937_32 gen;
+        gen.seed(iota(1u, 625u));
+        (&gen).take(10).writeln;
+    }
+
+    {
+        Mt19937_32 genA;
+        auto genB = Mt19937_32(Mt19937_32.defaultSeed);
+        assert(genA.state == genB.state);
+    }
+}
