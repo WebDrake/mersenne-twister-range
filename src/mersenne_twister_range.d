@@ -126,6 +126,11 @@ struct MersenneTwisterEngine(UIntType, size_t w, size_t n, size_t m, size_t r,
     /// explicitly seeding the generator with
     /// `defaultSeed`
     private State state = defaultState();
+    // NOTE: the above is a workaround to ensure
+    // backwards compatibility with the original
+    // implementation, which permitted implicit
+    // construction.  With `@disable this();`
+    // it would not be necessary.
 
     /**
        Constructs a MersenneTwisterEngine object.
