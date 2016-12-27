@@ -235,7 +235,13 @@ struct MersenneTwisterEngine(UIntType, size_t w, size_t n, size_t m, size_t r,
 
         if (range.empty && j < n)
         {
-            assert(0, "Insufficient range elements to seed MersenneTwisterEngine.");
+            import core.internal.string : UnsignedStringBuf, unsignedToTempString;
+
+            UnsignedStringBuf buf = void;
+            string s = "MersenneTwisterEngine.seed: Input range didn't provide enough elements: Need ";
+            s ~= unsignedToTempString(n, buf, 10) ~ " elements.";
+            throw new Exception(s);
+
         }
 
         // double popFront() to guarantee both
