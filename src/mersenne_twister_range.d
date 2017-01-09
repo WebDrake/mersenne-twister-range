@@ -315,7 +315,7 @@ Parameters for the generator.
 /**
    Returns the current random value.
  */
-    @property UIntType front() @safe pure nothrow @nogc
+    @property UIntType front() @safe const pure nothrow @nogc
     {
         return this.state.front;
     }
