@@ -28,7 +28,7 @@ void main()
     auto std = std.random.Mt19937(seed); //32-bit
     auto mir_32o = opcallMT.Mt19937_32(seed);
     auto mir_64o = opcallMT.Mt19937_64(seed);
-    auto mir_32r = rangeMT.Mt19937_32(seed);
+    auto mir_32r = rangeMT.Mt19937(seed);
     auto mir_64r = rangeMT.Mt19937_64(seed);
     enum ulong count = 100_000_000;
     ulong s;
